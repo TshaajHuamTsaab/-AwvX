@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>象征志三段志</title>
+<style>
+body {
+  margin: 0;
+  font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  background: radial-gradient(circle at center, #334466, #000000);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+h1 { margin-bottom: 20px; }
+.line { margin: 10px 0; font-size: 1.5em; text-align: center; }
+.highlight { color: red; font-weight: bold; transition: color 0.1s; }
+.controls { position: absolute; bottom: 20px; }
+button {
+  margin: 5px; padding: 10px 20px;
+  border: none; border-radius: 6px;
+  background: rgba(255,255,255,0.2); color: white;
+  cursor: pointer; font-size: 1em;
+}
+button:hover { background: rgba(255,255,255,0.4); }
+#successBtn {
+  display: none;
+  position: absolute;
+  top: 20px;
+  font-size: 1.5em;
+  background: gold;
+  color: black;
+  font-weight: bold;
+  padding: 10px 20px;
+  border-radius: 6px;
+}
+</style>
+</head>
+<body>
+<h1 id="title">过去</h1>
+<div id="text"></div>
+
+<div class="controls">
+  <button onclick="prevPage()">上一页</button>
+  <button onclick="playText()">播放朗读</button>
+  <button onclick="stopText()">停止朗读</button>
+  <button onclick="nextPage()">下一页</button>
+</div>
+
+<button id="successBtn">祝你成功🏆</button>
+
+<script>
+let pages = [
+  {
+    title: "过去",
+    lines: [
+      "初心是否真诚，不为虚荣左右。",
+      "志行是否一致，行动配得志。",
+      "得失能否总结，错误化为力。",
+      "志向是否兼顾，不损他人利。",
+      "志愿是否适时，环境能相合。"
+    ]
+  },
+  {
+    title: "现在",
+    lines: [
+      "明确方向专注，不随潮流摇摆。",
+      "立足当下行动，不拖延空幻想。",
+      "修养品德心境，志不离于德。",
+      "广结善缘助人，行路有人扶。",
+      "不惧困难坚持，积累终有成。"
+    ]
+  },
+  {
+    title: "未来",
+    lines: [
+      "志愿长远规划，不困于一时。",
+      "传承精神价值，不只为己。",
+      "积累智慧经验，惠泽后代。",
+      "心怀宽广胸襟，容纳不同。",
+      "保持终身学习，不停于成。"
+    ]
+  }
+];
+
+let currentPage = 0;
+let container = document.getElementById("text");
+let title = document.getElementById("title");
+let synth = window.speechSynthesis;
+let utterance;
+let reading = false;
+let currentLine = 0;
+let currentChar = 0;
+let allLines;
+let highlightTimer;
+
+function renderText() {
+  container.innerHTML = "";
+  title.textContent = pages[currentPage].title;
+  pages[currentPage].lines.forEach(line => {
+    let div = document.createElement("div");
+    div.className = "line";
+    for (let char of line) {
+      let span = document.createElement("span");
+      span.textContent = char;
+      div.appendChild(span);
+    }
+    container.appendChild(div);
+  });
+}
+
+renderText();
+
+function nextPage() {
+  if (currentPage < pages.length - 1) {
+    currentPage++;
+    renderText();
+  }
+}
+
+function prevPage() {
+  if (currentPage > 0) {
+    currentPage--;
+    renderText();
+  }
+}
+
+function playText() {
+  stopText();
+  reading = true;
+  currentLine = 0;
+  currentChar = 0;
+  allLines = container.querySelectorAll(".line");
+
+  function highlightChar(spans) {
+    if (!reading) return;
+    if (currentChar < spans.length) {
+      spans[currentChar].classList.add("highlight");
+      currentChar++;
+      highlightTimer = setTimeout(() => highlightChar(spans), 200); // 每字高亮间隔
+    }
+  }
+
+  function speakLine() {
+    if (!reading) return;
+    if (currentLine >= allLines.length) {
+      if (currentPage < pages.length - 1) {
+        currentPage++;
+        renderText();
+        currentLine = 0;
+        currentChar = 0;
+        allLines = container.querySelectorAll(".line");
+        speakLine();
+      } else {
+        document.getElementById("successBtn").style.display = "block";
+      }
+      return;
+    }
+
+    let lineText = allLines[currentLine].textContent;
+    let spans = allLines[currentLine].querySelectorAll("span");
+    currentChar = 0;
+
+    // 开始高亮
+    highlightChar(spans);
+
+    // 朗读
+    utterance = new SpeechSynthesisUtterance(lineText);
+    utterance.lang = "zh-CN";
+    utterance.rate = 0.85;
+    utterance.pitch = 1.1;
+
+    utterance.onend = () => {
+      clearTimeout(highlightTimer);
+      currentLine++;
+      speakLine();
+    };
+
+    synth.speak(utterance);
+  }
+
+  speakLine();
+}
+
+function stopText() {
+  reading = false;
+  clearTimeout(highlightTimer);
+  if (synth.speaking) synth.cancel();
+  container.querySelectorAll("span").forEach(s => s.classList.remove("highlight"));
+}
+</script>
+</body>
+</html>

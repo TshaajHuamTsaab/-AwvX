@@ -19,12 +19,14 @@ body {
 h1 { margin-bottom: 20px; font-size: 2.5em; }
 .line {
   margin: 15px 0;
-  font-size: 2em;
   text-align: center;
 }
 .highlight {
   color: gold;
   font-weight: bold;
+  background: rgba(255, 215, 0, 0.2);
+  display: inline-block;
+  padding: 2px 5px;
 }
 .controls {
   position: absolute;
@@ -42,7 +44,7 @@ button {
 #playBtn { background: royalblue; color: white; }
 #stopBtn { background: crimson; color: white; }
 .navBtn { background: seagreen; color: white; }
-button:hover { opacity: 0.8; }
+#switchBtn { background: orange; color: black; }
 #successBtn {
   display: none;
   position: absolute;
@@ -54,11 +56,58 @@ button:hover { opacity: 0.8; }
   padding: 10px 20px;
   border-radius: 8px;
 }
+#fontControls {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+}
+#fontControls button {
+  width: 50px;
+  height: 50px;
+  font-size: 1.5em;
+  padding: 0;
+  margin: 5px;
+}
+#explainBtn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 1.2em;
+  padding: 10px 20px;
+  font-weight: bold;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+  background-size: 400% 100%;
+  color: white;
+  animation: rainbow 4s linear infinite;
+}
+@keyframes rainbow {
+  0% {background-position:0% 50%;}
+  50% {background-position:100% 50%;}
+  100% {background-position:0% 50%;}
+}
 canvas {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   z-index: -1;
+}
+#explanationBox {
+  display: none;
+  position: absolute;
+  top: 80px;
+  right: 20px;
+  width: 350px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  border-radius: 10px;
+  padding: 15px;
+  font-size: 0.95em;
+  line-height: 1.5em;
 }
 </style>
 </head>
@@ -72,220 +121,128 @@ canvas {
   <button id="playBtn" onclick="playText()">播放朗读</button>
   <button id="stopBtn" onclick="stopText()">停止朗读</button>
   <button class="navBtn" onclick="nextPage()">下一页</button>
+  <button id="switchBtn" class="navBtn" onclick="switchOrder()">切换顺序</button>
+</div>
+
+<div id="fontControls">
+  <button onclick="changeFontSize(2)">+</button>
+  <button onclick="changeFontSize(-2)">-</button>
 </div>
 
 <button id="successBtn">祝你成功🏆</button>
+<button id="explainBtn" onclick="toggleExplanation()">解释经文</button>
+
+<div id="explanationBox">
+  <p>“不惧困难坚持，积累终有成。”<br>
+  提醒你：面对挑战和困难不要退缩，坚持不懈地积累经验和努力。<br>
+  意思是：持续努力终会有收获，成功是积累的结果。<br>
+  行动与修养的成长路线：明确方向 → 立足当下 → 修养品德 → 善待他人 → 坚持积累 → 成就目标。</p>
+
+  <p>“志愿长远规划，不困于一时。”<br>
+  意思是：制定目标和志向时，要有长远眼光，不被眼前的得失或短期困难所束缚。<br>
+  强调战略性思维与耐心，目光放远才能稳步发展。</p>
+
+  <p>“传承精神价值，不只为己。”<br>
+  你的努力不仅是为了个人利益，还应考虑传承精神、文化或正面价值。<br>
+  强调使命感和社会责任，让行动有更高层次的意义。</p>
+
+  <p>“积累智慧经验，惠泽后代。”<br>
+  意思是：不仅关注自己的成长，也要积累知识和经验，能够帮助后人或下一代受益。<br>
+  个人价值最终体现为对社会或后代的贡献。</p>
+
+  <p>“心怀宽广胸襟，容纳不同。”<br>
+  要有开阔的心态，能够包容不同的观点、意见和文化。<br>
+  意思是：宽容和理解他人，使人际关系更和谐，也利于长期发展。</p>
+
+  <p>“保持终身学习，不停于成。”<br>
+  意思是：成长是终身的过程，永远保持学习与进步的心态。<br>
+  目标长远 → 超越自我 → 积累智慧 → 宽容包容 → 持续学习。</p>
+</div>
 
 <script>
+// ---------- 文本数据和功能 ----------
 let pages = [
-  {
-    title: "过去",
-    lines: [
-      "初心是否真诚，不为虚荣左右。",
-      "志行是否一致，行动配得志。",
-      "得失能否总结，错误化为力。",
-      "志向是否兼顾，不损他人利。",
-      "志愿是否适时，环境能相合。"
-    ]
-  },
-  {
-    title: "现在",
-    lines: [
-      "明确方向专注，不随潮流摇摆。",
-      "立足当下行动，不拖延空幻想。",
-      "修养品德心境，志不离于德。",
-      "广结善缘助人，行路有人扶。",
-      "不惧困难坚持，积累终有成。"
-    ]
-  },
-  {
-    title: "未来",
-    lines: [
-      "志愿长远规划，不困于一时。",
-      "传承精神价值，不只为己。",
-      "积累智慧经验，惠泽后代。",
-      "心怀宽广胸襟，容纳不同。",
-      "保持终身学习，不停于成。"
-    ]
-  }
+  { title: "过去", lines: ["初心是否真诚，不为虚荣左右。","志行是否一致，行动配得志。","得失能否总结，错误化为力。","志向是否兼顾，不损他人利。","志愿是否适时，环境能相合。"] },
+  { title: "现在", lines: ["明确方向专注，不随潮流摇摆。","立足当下行动，不拖延空幻想。","修养品德心境，志不离于德。","广结善缘助人，行路有人扶。","不惧困难坚持，积累终有成。"] },
+  { title: "未来", lines: ["志愿长远规划，不困于一时。","传承精神价值，不只为己。","积累智慧经验，惠泽后代。","心怀宽广胸襟，容纳不同。","保持终身学习，不停于成。"] }
 ];
-
 let currentPage = 0;
 let container = document.getElementById("text");
 let title = document.getElementById("title");
-let timer, currentChar, currentLine, allLines;
+let reading = false;
 let synth = window.speechSynthesis;
 let utterance;
-let reading = false;
+let allLines;
+let topToBottom = true;
+let fontSize = 2;
 
 function renderText() {
   container.innerHTML = "";
   title.textContent = pages[currentPage].title;
-  pages[currentPage].lines.forEach(line => {
+  let lines = topToBottom ? pages[currentPage].lines : [...pages[currentPage].lines].reverse();
+  lines.forEach(line => {
     let div = document.createElement("div");
     div.className = "line";
-    for (let char of line) {
-      let span = document.createElement("span");
-      span.textContent = char;
-      div.appendChild(span);
-    }
+    div.style.fontSize = fontSize + "em";
+    div.textContent = line;
     container.appendChild(div);
   });
 }
 renderText();
 
-function nextPage() {
-  if (currentPage < pages.length - 1) {
-    currentPage++;
-    renderText();
-  }
-}
-function prevPage() {
-  if (currentPage > 0) {
-    currentPage--;
-    renderText();
-  }
-}
+function nextPage(){if(currentPage<pages.length-1){currentPage++;renderText();}}
+function prevPage(){if(currentPage>0){currentPage--;renderText();}}
+function switchOrder(){topToBottom = !topToBottom; renderText();}
+function changeFontSize(delta){fontSize+=delta;if(fontSize<0.5)fontSize=0.5;renderText();}
 
-function playText() {
+// ---------- 朗读功能 ----------
+function playText(){
   stopText();
-  reading = true;
-  currentChar = 0;
-  currentLine = 0;
+  reading=true;
+  let currentLine=0;
   allLines = container.querySelectorAll(".line");
-
-  function speakNextLine() {
-    if (!reading) return;
-    if (currentLine >= allLines.length) {
-      if (currentPage < pages.length - 1) {
-        currentPage++;
-        renderText();
-        currentLine = 0;
-        currentChar = 0;
-        allLines = container.querySelectorAll(".line");
-        speakNextLine();
-      } else {
-        document.getElementById("successBtn").style.display = "block";
-      }
-      return;
+  function speakNextLine(){
+    if(!reading) return;
+    if(currentLine>=allLines.length){
+      if(currentPage<pages.length-1){currentPage++;renderText();currentLine=0;allLines=container.querySelectorAll(".line");speakNextLine();}
+      else{document.getElementById("successBtn").style.display="block";return;}
     }
-
-    let lineText = allLines[currentLine].textContent;
-    currentChar = 0;
-    let spans = allLines[currentLine].querySelectorAll("span");
-
-    utterance = new SpeechSynthesisUtterance(lineText);
-    utterance.lang = "zh-CN";
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-
-    // 优先选择女性声音
+    let lineDiv=allLines[currentLine];
+    let lineText=lineDiv.textContent;
+    utterance=new SpeechSynthesisUtterance(lineText);
+    utterance.lang="zh-CN";
+    utterance.rate=0.9;
+    utterance.pitch=1;
     let voices = synth.getVoices();
-    let female = voices.find(v => v.lang === "zh-CN" && /female|huihui|xiaoxiao/i.test(v.name));
-    if (female) utterance.voice = female;
-
-    utterance.onstart = () => {
-      timer = setInterval(() => {
-        if (currentChar < spans.length) {
-          spans[currentChar].classList.add("highlight");
-          currentChar++;
-        }
-      }, 300);
-    };
-
-    utterance.onend = () => {
-      clearInterval(timer);
-      currentLine++;
-      speakNextLine();
-    };
-
+    let female = voices.find(v=>v.lang==="zh-CN"&&/female|huihui|xiaoxiao/i.test(v.name));
+    if(female) utterance.voice=female;
+    lineDiv.classList.add("highlight");
+    utterance.onend=()=>{lineDiv.classList.remove("highlight");currentLine++;speakNextLine();}
     synth.speak(utterance);
   }
-
   speakNextLine();
 }
+function stopText(){reading=false;if(synth.speaking)synth.cancel();container.querySelectorAll(".line").forEach(s=>s.classList.remove("highlight"));}
 
-function stopText() {
-  reading = false;
-  clearInterval(timer);
-  if (synth.speaking) synth.cancel();
-  container.querySelectorAll("span").forEach(s => s.classList.remove("highlight"));
+// ---------- 解释经文 ----------
+function toggleExplanation(){
+  let box = document.getElementById("explanationBox");
+  box.style.display = box.style.display==="block"?"none":"block";
 }
 
 // ---------- 背景宇宙动画 ----------
-let canvas = document.getElementById("space");
-let ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let stars = Array.from({length: 200}, () => ({
-  x: Math.random() * canvas.width,
-  y: Math.random() * canvas.height,
-  r: Math.random() * 1.5,
-  o: Math.random()
-}));
-
-let satellites = [];
-
-function drawEarth() {
-  let earthX = canvas.width * 0.8;
-  let earthY = canvas.height * 0.8;
-  let radius = 120;
-
-  let gradient = ctx.createRadialGradient(earthX-30, earthY-30, 50, earthX, earthY, radius);
-  gradient.addColorStop(0, "#1E90FF");
-  gradient.addColorStop(1, "#001f3f");
-
-  ctx.beginPath();
-  ctx.arc(earthX, earthY, radius, 0, Math.PI*2);
-  ctx.fillStyle = gradient;
-  ctx.fill();
-}
-
-function drawStars() {
-  stars.forEach(s => {
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-    ctx.fillStyle = `rgba(255,255,255,${Math.abs(Math.sin(Date.now()/1000+s.o))})`;
-    ctx.fill();
-  });
-}
-
-function drawSatellites() {
-  satellites.forEach((sat, i) => {
-    ctx.save();
-    ctx.translate(sat.x, sat.y);
-    ctx.rotate(sat.angle);
-    ctx.fillStyle = "lightgray";
-    ctx.fillRect(-10, -5, 20, 10);
-    ctx.fillStyle = "silver";
-    ctx.fillRect(-20, -2, 40, 4);
-    ctx.restore();
-
-    sat.x += sat.vx;
-    sat.y += sat.vy;
-    sat.life -= 1;
-    if (sat.life <= 0) satellites.splice(i, 1);
-  });
-}
-
-function loop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawStars();
-  drawEarth();
-  drawSatellites();
-  if (Math.random() < 0.01) { // 偶尔出现卫星
-    satellites.push({
-      x: -50,
-      y: 100 + Math.random()*canvas.height/2,
-      vx: 3, vy: 0.5,
-      angle: Math.random()*Math.PI,
-      life: 150 // 飞一半就消失
-    });
-  }
-  requestAnimationFrame(loop);
-}
+let canvas=document.getElementById("space");
+let ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+let stars=Array.from({length:200},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.5,o:Math.random()}));
+let satellites=[];
+function drawEarth(){let earthX=canvas.width*0.8,earthY=canvas.height*0.8,radius=120;let gradient=ctx.createRadialGradient(earthX-30,earthY-30,50,earthX,earthY,radius);gradient.addColorStop(0,"#1E90FF");gradient.addColorStop(1,"#001f3f");ctx.beginPath();ctx.arc(earthX,earthY,radius,0,Math.PI*2);ctx.fillStyle=gradient;ctx.fill();}
+function drawStars(){stars.forEach(s=>{ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${Math.abs(Math.sin(Date.now()/1000+s.o))})`;ctx.fill();});}
+function drawSatellites(){satellites.forEach((sat,i)=>{ctx.save();ctx.translate(sat.x,sat.y);ctx.rotate(sat.angle);ctx.fillStyle="lightgray";ctx.fillRect(-10,-5,20,10);ctx.fillStyle="silver";ctx.fillRect(-20,-2,40,4);ctx.restore();sat.x+=sat.vx;sat.y+=sat.vy;sat.life-=1;if(sat.life<=0)satellites.splice(i,1);});}
+function loop(){ctx.clearRect(0,0,canvas.width,canvas.height);drawStars();drawEarth();drawSatellites();if(Math.random()<0.01){satellites.push({x:-50,y:100+Math.random()*canvas.height/2,vx:3,vy:0.5,angle:Math.random()*Math.PI,life:150});}requestAnimationFrame(loop);}
 loop();
+window.addEventListener("resize",()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
 </script>
 </body>
 </html>

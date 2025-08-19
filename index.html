@@ -6,8 +6,8 @@
 <style>
 body {
   margin: 0;
-  font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif;
-  background: radial-gradient(circle at center, #334466, #000000);
+  font-family: "Microsoft YaHei", sans-serif;
+  background: black;
   color: white;
   display: flex;
   flex-direction: column;
@@ -16,17 +16,33 @@ body {
   height: 100vh;
   overflow: hidden;
 }
-h1 { margin-bottom: 20px; }
-.line { margin: 10px 0; font-size: 1.5em; text-align: center; }
-.highlight { color: red; font-weight: bold; transition: color 0.1s; }
-.controls { position: absolute; bottom: 20px; }
-button {
-  margin: 5px; padding: 10px 20px;
-  border: none; border-radius: 6px;
-  background: rgba(255,255,255,0.2); color: white;
-  cursor: pointer; font-size: 1em;
+h1 { margin-bottom: 20px; font-size: 2.5em; }
+.line {
+  margin: 15px 0;
+  font-size: 2em;
+  text-align: center;
 }
-button:hover { background: rgba(255,255,255,0.4); }
+.highlight {
+  color: gold;
+  font-weight: bold;
+}
+.controls {
+  position: absolute;
+  bottom: 20px;
+}
+button {
+  margin: 10px;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.2em;
+  cursor: pointer;
+  font-weight: bold;
+}
+#playBtn { background: royalblue; color: white; }
+#stopBtn { background: crimson; color: white; }
+.navBtn { background: seagreen; color: white; }
+button:hover { opacity: 0.8; }
 #successBtn {
   display: none;
   position: absolute;
@@ -36,19 +52,26 @@ button:hover { background: rgba(255,255,255,0.4); }
   color: black;
   font-weight: bold;
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: 8px;
+}
+canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: -1;
 }
 </style>
 </head>
 <body>
+<canvas id="space"></canvas>
 <h1 id="title">过去</h1>
 <div id="text"></div>
 
 <div class="controls">
-  <button onclick="prevPage()">上一页</button>
-  <button onclick="playText()">播放朗读</button>
-  <button onclick="stopText()">停止朗读</button>
-  <button onclick="nextPage()">下一页</button>
+  <button class="navBtn" onclick="prevPage()">上一页</button>
+  <button id="playBtn" onclick="playText()">播放朗读</button>
+  <button id="stopBtn" onclick="stopText()">停止朗读</button>
+  <button class="navBtn" onclick="nextPage()">下一页</button>
 </div>
 
 <button id="successBtn">祝你成功🏆</button>
@@ -90,13 +113,10 @@ let pages = [
 let currentPage = 0;
 let container = document.getElementById("text");
 let title = document.getElementById("title");
+let timer, currentChar, currentLine, allLines;
 let synth = window.speechSynthesis;
 let utterance;
 let reading = false;
-let currentLine = 0;
-let currentChar = 0;
-let allLines;
-let highlightTimer;
 
 function renderText() {
   container.innerHTML = "";
@@ -112,7 +132,6 @@ function renderText() {
     container.appendChild(div);
   });
 }
-
 renderText();
 
 function nextPage() {
@@ -121,7 +140,6 @@ function nextPage() {
     renderText();
   }
 }
-
 function prevPage() {
   if (currentPage > 0) {
     currentPage--;
@@ -132,20 +150,11 @@ function prevPage() {
 function playText() {
   stopText();
   reading = true;
-  currentLine = 0;
   currentChar = 0;
+  currentLine = 0;
   allLines = container.querySelectorAll(".line");
 
-  function highlightChar(spans) {
-    if (!reading) return;
-    if (currentChar < spans.length) {
-      spans[currentChar].classList.add("highlight");
-      currentChar++;
-      highlightTimer = setTimeout(() => highlightChar(spans), 200); // 每字高亮间隔
-    }
-  }
-
-  function speakLine() {
+  function speakNextLine() {
     if (!reading) return;
     if (currentLine >= allLines.length) {
       if (currentPage < pages.length - 1) {
@@ -154,7 +163,7 @@ function playText() {
         currentLine = 0;
         currentChar = 0;
         allLines = container.querySelectorAll(".line");
-        speakLine();
+        speakNextLine();
       } else {
         document.getElementById("successBtn").style.display = "block";
       }
@@ -162,36 +171,121 @@ function playText() {
     }
 
     let lineText = allLines[currentLine].textContent;
-    let spans = allLines[currentLine].querySelectorAll("span");
     currentChar = 0;
+    let spans = allLines[currentLine].querySelectorAll("span");
 
-    // 开始高亮
-    highlightChar(spans);
-
-    // 朗读
     utterance = new SpeechSynthesisUtterance(lineText);
     utterance.lang = "zh-CN";
-    utterance.rate = 0.85;
-    utterance.pitch = 1.1;
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+
+    // 优先选择女性声音
+    let voices = synth.getVoices();
+    let female = voices.find(v => v.lang === "zh-CN" && /female|huihui|xiaoxiao/i.test(v.name));
+    if (female) utterance.voice = female;
+
+    utterance.onstart = () => {
+      timer = setInterval(() => {
+        if (currentChar < spans.length) {
+          spans[currentChar].classList.add("highlight");
+          currentChar++;
+        }
+      }, 300);
+    };
 
     utterance.onend = () => {
-      clearTimeout(highlightTimer);
+      clearInterval(timer);
       currentLine++;
-      speakLine();
+      speakNextLine();
     };
 
     synth.speak(utterance);
   }
 
-  speakLine();
+  speakNextLine();
 }
 
 function stopText() {
   reading = false;
-  clearTimeout(highlightTimer);
+  clearInterval(timer);
   if (synth.speaking) synth.cancel();
   container.querySelectorAll("span").forEach(s => s.classList.remove("highlight"));
 }
+
+// ---------- 背景宇宙动画 ----------
+let canvas = document.getElementById("space");
+let ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let stars = Array.from({length: 200}, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  r: Math.random() * 1.5,
+  o: Math.random()
+}));
+
+let satellites = [];
+
+function drawEarth() {
+  let earthX = canvas.width * 0.8;
+  let earthY = canvas.height * 0.8;
+  let radius = 120;
+
+  let gradient = ctx.createRadialGradient(earthX-30, earthY-30, 50, earthX, earthY, radius);
+  gradient.addColorStop(0, "#1E90FF");
+  gradient.addColorStop(1, "#001f3f");
+
+  ctx.beginPath();
+  ctx.arc(earthX, earthY, radius, 0, Math.PI*2);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+}
+
+function drawStars() {
+  stars.forEach(s => {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${Math.abs(Math.sin(Date.now()/1000+s.o))})`;
+    ctx.fill();
+  });
+}
+
+function drawSatellites() {
+  satellites.forEach((sat, i) => {
+    ctx.save();
+    ctx.translate(sat.x, sat.y);
+    ctx.rotate(sat.angle);
+    ctx.fillStyle = "lightgray";
+    ctx.fillRect(-10, -5, 20, 10);
+    ctx.fillStyle = "silver";
+    ctx.fillRect(-20, -2, 40, 4);
+    ctx.restore();
+
+    sat.x += sat.vx;
+    sat.y += sat.vy;
+    sat.life -= 1;
+    if (sat.life <= 0) satellites.splice(i, 1);
+  });
+}
+
+function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawStars();
+  drawEarth();
+  drawSatellites();
+  if (Math.random() < 0.01) { // 偶尔出现卫星
+    satellites.push({
+      x: -50,
+      y: 100 + Math.random()*canvas.height/2,
+      vx: 3, vy: 0.5,
+      angle: Math.random()*Math.PI,
+      life: 150 // 飞一半就消失
+    });
+  }
+  requestAnimationFrame(loop);
+}
+loop();
 </script>
 </body>
 </html>

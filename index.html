@@ -16,7 +16,7 @@ body {
   height: 100vh;
   overflow: hidden;
 }
-h1 { margin-bottom: 20px; font-size: 2.5em; }
+h1 { margin-bottom: 20px; font-size: 3em; color: #3399FF; }
 .line {
   margin: 15px 0;
   text-align: center;
@@ -72,7 +72,7 @@ button {
   position: absolute;
   top: 20px;
   right: 20px;
-  font-size: 1.2em;
+  font-size: 1.3em;
   padding: 10px 20px;
   font-weight: bold;
   border-radius: 10px;
@@ -99,16 +99,19 @@ canvas {
   position: absolute;
   top: 80px;
   right: 20px;
-  width: 350px;
-  max-height: 60vh;
+  width: 400px;
+  max-height: 70vh;
   overflow-y: auto;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.85);
   color: white;
   border-radius: 10px;
-  padding: 15px;
-  font-size: 0.95em;
-  line-height: 1.5em;
+  padding: 20px;
+  font-size: 1.1em;
+  line-height: 1.6em;
 }
+.greenText { color: #00FF00; font-weight: bold; }
+.redText { color: #FF3333; font-weight: bold; }
+.blueText { color: #3399FF; font-weight: bold; font-size:1.3em; }
 </style>
 </head>
 <body>
@@ -133,30 +136,71 @@ canvas {
 <button id="explainBtn" onclick="toggleExplanation()">解释经文</button>
 
 <div id="explanationBox">
-  <p>“不惧困难坚持，积累终有成。”<br>
-  提醒你：面对挑战和困难不要退缩，坚持不懈地积累经验和努力。<br>
-  意思是：持续努力终会有收获，成功是积累的结果。<br>
-  行动与修养的成长路线：明确方向 → 立足当下 → 修养品德 → 善待他人 → 坚持积累 → 成就目标。</p>
+  <p><span class="blueText">过去：</span><span class="redText">反思经历过去的事情该按照使用的原则</span></p>
+  <p><span class="greenText">“初心是否真诚，不为虚荣左右。”</span><br>
+  首先要问自己：最初的目标和动机是否纯正？你追求的是真正想做的事情，还是为了面子、名利或虚荣？<br>
+  重点是保持内心的真诚和清醒，不被外界的浮华干扰。</p>
 
-  <p>“志愿长远规划，不困于一时。”<br>
+  <p><span class="greenText">“志行是否一致，行动配得志。”</span><br>
+  你的行为是否真正与志向相符？说到做到，行动是否在支撑你的理想？<br>
+  意思是：理想必须落实到具体行动上，否则只停留在空想。</p>
+
+  <p><span class="greenText">“得失能否总结，错误化为力。”</span><br>
+  每一次成功或失败之后，你是否能够总结经验、反思得失？<br>
+  错误不是终点，而是成长的机会，把它转化为改进和进步的动力。</p>
+
+  <p><span class="greenText">“志向是否兼顾，不损他人利。”</span><br>
+  追求自己的目标时，是否考虑到他人的利益？是否做到不以牺牲他人为代价？<br>
+  意思是：理想与行动都要有道德和公平的考量，追求的目标不能伤害别人。</p>
+
+  <p><span class="greenText">“志愿是否适时，环境能相合。”</span><br>
+  你的志愿、计划或目标是否在恰当的时间提出？是否符合现实环境和条件？<br>
+  意思是：有再好的志向，也需要考虑时机和环境，顺势而为才容易实现。</p>
+
+  <p><span class="blueText">现在：</span><span class="redText">现实，自己还在过着还在掌握着的事情该做的原则</span></p>
+  <p><span class="greenText">“明确方向专注，不随潮流摇摆。”</span><br>
+  你需要清楚自己的目标，专注于自己的方向，不被周围流行趋势或他人意见轻易影响。<br>
+  意思是：坚持自己的路线，保持独立判断力，不盲目随波逐流。</p>
+
+  <p><span class="greenText">“立足当下行动，不拖延空幻想。”</span><br>
+  强调行动力：把注意力放在当前能做的事情上，避免空想或一味等待机会。<br>
+  意思是：现实行动比幻想更重要，踏实做事才能推进目标。</p>
+
+  <p><span class="greenText">“修养品德心境，志不离于德。”</span><br>
+  意思是：个人修养、品德和内心状态要保持良好，追求目标时不能违背道德原则。<br>
+  目标与品德要协调，真正的志向应建立在德行之上。</p>
+
+  <p><span class="greenText">“广结善缘助人，行路有人扶。”</span><br>
+  建议你在人际关系中积极结善缘，帮助他人。<br>
+  意思是：积累善缘不仅利他，也会在你遇到困难时有人支持，体现“人际互助”的智慧。</p>
+
+  <p><span class="greenText">“不惧困难坚持，积累终有成。”</span><br>
+  提醒你：面对挑战和困难不要退缩，坚持不懈地积累经验和努力。<br>
+  意思是：持续努力终会有收获，成功是积累的结果。</p>
+
+  <p><span class="redText">行动与修养的成长路线：明确方向 → 立足当下 → 修养品德 → 善待他人 → 坚持积累 → 成就目标。</span></p>
+
+  <p><span class="blueText">未来：</span><span class="redText">思考规划好自己的人生未来以后无懊恼！</span></p>
+  <p><span class="greenText">“志愿长远规划，不困于一时。”</span><br>
   意思是：制定目标和志向时，要有长远眼光，不被眼前的得失或短期困难所束缚。<br>
   强调战略性思维与耐心，目光放远才能稳步发展。</p>
 
-  <p>“传承精神价值，不只为己。”<br>
+  <p><span class="greenText">“传承精神价值，不只为己。”</span><br>
   你的努力不仅是为了个人利益，还应考虑传承精神、文化或正面价值。<br>
   强调使命感和社会责任，让行动有更高层次的意义。</p>
 
-  <p>“积累智慧经验，惠泽后代。”<br>
-  意思是：不仅关注自己的成长，也要积累知识和经验，能够帮助后人或下一代受益。<br>
-  个人价值最终体现为对社会或后代的贡献。</p>
+  <p><span class="greenText">“积累智慧经验，惠泽后代。”</span><br>
+  不仅关注自己的成长，也要积累知识和经验，能够帮助后人或下一代受益。<br>
+  意思是：个人价值最终体现为对社会或后代的贡献。</p>
 
-  <p>“心怀宽广胸襟，容纳不同。”<br>
+  <p><span class="greenText">“心怀宽广胸襟，容纳不同。”</span><br>
   要有开阔的心态，能够包容不同的观点、意见和文化。<br>
   意思是：宽容和理解他人，使人际关系更和谐，也利于长期发展。</p>
 
-  <p>“保持终身学习，不停于成。”<br>
-  意思是：成长是终身的过程，永远保持学习与进步的心态。<br>
-  目标长远 → 超越自我 → 积累智慧 → 宽容包容 → 持续学习。</p>
+  <p><span class="greenText">“保持终身学习，不停于成。”</span><br>
+  目标长远 → 超越自我 → 积累智慧 → 宽容包容 → 持续学习<br>
+  强调持续学习的重要性，不因已有成就而停下脚步。<br>
+  意思是：成长是终身的过程，永远保持学习与进步的心态。</p>
 </div>
 
 <script>
